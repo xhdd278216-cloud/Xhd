@@ -1234,5 +1234,39 @@
     renderMetrics();
     renderProjects();
   </script>
+    </script>
+
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAohQHvodl_0PuGbP-E8C7wYvKevQo3LVo",
+  authDomain: "coreproject-8004d.firebaseapp.com",
+  projectId: "coreproject-8004d",
+  storageBucket: "coreproject-8004d.firebasestorage.app",
+  messagingSenderId: "235805661035",
+  appId: "1:235805661035:web:90b6c71ad41fdb04a8de2e",
+  measurementId: "G-24CG3BGMLT"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.db = db;
+window.doc = doc;
+window.setDoc = setDoc;
+window.getDoc = getDoc;
+window.onSnapshot = onSnapshot;
+
+console.log("Firebase 已连接");
+</script>
 </body>
 </html>
