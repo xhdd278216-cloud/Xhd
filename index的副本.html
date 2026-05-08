@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+@font-face {
+  font-family: 'AlibabaPuHuiTi';
+  src: local('Alibaba PuHuiTi 3.0 65 Medium'), local('Alibaba PuHuiTi 3.0 75 SemiBold'), local('Alibaba PuHuiTi'), local('AlibabaPuHuiTi'), local('Alibaba PuHuiTi 3.0');
+  font-weight: 400 900;
+}
+
+@font-face {
+  font-family: 'Gotham';
+  src: local('Gotham Medium'), local('Gotham Book'), local('Gotham');
+  font-weight: 400 900;
+}
+</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>华东-中南片区 · 专案进度看板</title>
+  <style>
+    :root {
+      --bg: #f4f5fb;
+      --panel: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #3730a3;
+      --border: #e5e7eb;
+      --shadow: 0 28px 90px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "AlibabaPuHuiTi", "PingFang SC", "Microsoft YaHei", sans-serif; font-weight: 500; background: var(--bg); color: var(--text); }
+    small, .brand-small, .nav-heading, .nav-button span, .month-label { font-family: "Gotham", "Inter", Arial, sans-serif; color: #8b91a1; text-transform: uppercase; letter-spacing: 0.08em; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell { min-height: 100vh; padding: 30px; }
+    .page-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 60px); align-items: start; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+    .sidebar-panel { position: sticky; top: 30px; height: calc(100vh - 60px); display: flex; flex-direction: column; margin-left: -30px; overflow-y: auto; }
+    .panel-header { padding: 24px 24px 20px; border-bottom: 1px solid #eaecf0; }
+    .panel-body { padding: 22px 24px 26px; }
+
+    .main-panel .panel-header h2 { margin: 0 0 2px; font-weight: 900; }
+    .main-panel .panel-header small { font-size: 11px; }
+    .sidebar-panel .panel-header, .sidebar-panel .panel-body { padding-left: 22px; padding-right: 22px; }
+    .sidebar-panel .panel-body { display: flex; flex: 1; flex-direction: column; }
+    .nav-toggle-button { border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; color: #6b7280; padding: 8px 10px; font-size: 16px; transition: all 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
+    .nav-toggle-button:hover { background: #f3f4f6; color: #374151; }
+    .project-list { margin-top: 24px; display: grid; gap: 16px; }
+    .project-card { display: grid; grid-template-columns: 1fr auto; gap: 18px; padding: 22px 24px; border-radius: 12px; background: #ffffff; border: 1px solid #e5e7eb; align-items: center; }
+    .project-title { margin: 0 0 6px; font-size: 18px; font-weight: 800; }
+    .project-owner { margin: 0; color: var(--muted); font-size: 13px; }
+    .indicator-row { display: grid; grid-template-columns: repeat(12, minmax(26px, 1fr)); gap: 9px; margin-top: 16px; align-items: start; max-width: 620px; }
+    .month-indicator { display: grid; justify-items: center; gap: 6px; color: #9ca3af; font-size: 10px; line-height: 1; transition: color 0.2s, transform 0.2s; }
+    .indicator-dot { width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; opacity: 0.34; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.72); transition: width 0.2s, height 0.2s, opacity 0.2s, box-shadow 0.2s; }
+    .indicator-dot.green { background: #16a34a; }
+    .indicator-dot.red { background: #dc2626; }
+    .indicator-dot.empty { background: #e5e7eb; }
+    .month-indicator.current { color: var(--accent); font-weight: 700; transform: translateY(-2px); }
+    .month-indicator.current .indicator-dot { width: 19px; height: 19px; opacity: 1; box-shadow: inset 0 0 0 3px rgba(255,255,255,0.86), 0 8px 18px rgba(79,70,229,0.22); }
+    .month-indicator:not(.current) .indicator-dot.green { filter: saturate(0.48) brightness(1.08); }
+    .month-indicator:not(.current) .indicator-dot.red { filter: saturate(0.42) brightness(1.12); }
+    .month-label { white-space: nowrap; }
+    .project-action { border: none; background: none; color: var(--muted); font-size: 24px; cursor: pointer; }
+    .project-action:hover { color: var(--accent); }
+    body.collapsed .sidebar-panel { display: none; }
+    body.collapsed .page-grid { grid-template-columns: 1fr; }
+    .sidebar-show-button { position: fixed; left: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; color: #6b7280; font-size: 18px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 30; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    body.collapsed .sidebar-show-button { display: flex; }
+    .sidebar-show-button:hover { background: #f3f4f6; color: #374151; }
+
+    .sidebar-brand h1, .sidebar-brand h2 { margin: 0; line-height: 1.1; }
+    .sidebar-brand h1 { font-size: 12px; letter-spacing: 0.04em; white-space: nowrap; font-weight: 800; }
+    .sidebar-brand h2 { margin-top: 4px; font-size: 21px; font-weight: 900; color: var(--accent); line-height: 1.15; }
+    .brand-small { margin: 4px 0 0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+
+    .nav-block { margin-top: 32px; }
+    .nav-period { margin-top: auto; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+    .nav-period strong { display: block; color: #111827; font-size: 18px; font-weight: 900; line-height: 1; }
+    .nav-period span { display: block; margin-top: 5px; color: #8b91a1; font-family: "Gotham", "Inter", Arial, sans-serif; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .nav-heading { display: none; }
+    .nav-item { margin-bottom: 12px; }
+    .nav-button { width: 100%; border: none; border-radius: 12px; padding: 14px 16px; background: #f8f9ff; color: #6b7280; text-align: left; display: block; transition: background 0.2s, box-shadow 0.2s, transform 0.2s, color 0.2s; font-weight: 800; letter-spacing: 0.01em; }
+    .nav-button:hover { background: #eef2ff; transform: translateY(-1px); color: #4f46e5; }
+    .nav-button.active { background: #4f46e5; color: #ffffff; box-shadow: 0 10px 24px rgba(79,70,229,0.18); }
+    .nav-button span { display: block; margin-top: 5px; font-size: 8px; font-weight: 400; line-height: 1.1; letter-spacing: 0.02em; opacity: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-button.active span { color: rgba(255,255,255,0.78); }
+    .nav-button .dot { display: none; }
+
+    .metric-list { display: flex; gap: 14px; flex-wrap: wrap; }
+    .metric-block { position: relative; flex: 1; min-width: 220px; padding: 20px 22px 20px 48px; border-radius: 12px; background: #ffffff; border: 1px solid #e5e7eb; }
+    .metric-block::before { content: ""; position: absolute; left: 22px; top: 25px; width: 10px; height: 10px; border-radius: 50%; background: var(--metric-color, #6b7280); box-shadow: 0 0 0 4px var(--metric-tint, rgba(107,114,128,0.12)); }
+    .metric-block.metric-total { background: #f8f9ff; border-color: #c7d2fe; --metric-color: #4f46e5; --metric-tint: rgba(79,70,229,0.13); }
+    .metric-block.metric-complete { background: #f0fdf4; border-color: #bbf7d0; --metric-color: #16a34a; --metric-tint: rgba(22,163,74,0.13); }
+    .metric-block.metric-pending { background: #fff7ed; border-color: #fed7aa; --metric-color: #f97316; --metric-tint: rgba(249,115,22,0.14); }
+    .metric-block span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 10px; line-height: 1.45; }
+    .metric-block span small { display: block; margin-top: 3px; font-size: 11px; }
+    .metric-block strong { font-size: 30px; line-height: 1; color: #111827; font-weight: 900; }
+
+    .subpage { display: grid; gap: 16px; }
+    .subpage-placeholder { min-height: 360px; border: 1px dashed #e5e7eb; border-radius: 12px; background: #ffffff; }
+    .input-metric-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .input-metric { display: flex; flex-direction: column; justify-content: space-between; min-height: 112px; padding: 18px 20px; border-radius: 12px; border: 1px solid #e5e7eb; background: #ffffff; }
+    .input-metric.blue { background: #f8f9ff; border-color: #c7d2fe; }
+    .input-metric.green { background: #f0fdf4; border-color: #bbf7d0; }
+    .input-metric.orange { background: #fff7ed; border-color: #fed7aa; }
+    .input-metric label { display: block; min-height: 38px; color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .metric-input-row { display: flex; align-items: baseline; gap: 3px; min-height: 34px; }
+    .metric-input { width: 100%; min-width: 0; border: none; outline: none; background: transparent; color: #111827; font-size: 28px; font-weight: 900; }
+    .metric-unit { color: #111827; font-size: 24px; font-weight: 900; }
+    .data-card { border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff; overflow: hidden; }
+    .data-card-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 18px; border-bottom: 1px solid #e5e7eb; }
+    .data-card-header h3 { margin: 0; font-size: 16px; font-weight: 900; color: #111827; }
+    .data-card-header small { font-size: 10px; }
+    .data-table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 920px; }
+    .data-table th, .data-table td { border-bottom: 1px solid #eef0f4; padding: 10px 12px; text-align: left; vertical-align: top; }
+    .data-table th { color: #6b7280; font-size: 12px; font-weight: 800; background: #f9fafb; white-space: nowrap; }
+    .factory-name { min-width: 118px; font-weight: 800; color: #111827; white-space: nowrap; }
+    .table-input, .table-textarea { width: 100%; min-width: 80px; border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; color: #111827; padding: 8px 10px; font-size: 13px; }
+    .table-input:disabled, .table-textarea:disabled { border-color: transparent; background: transparent; color: #111827; opacity: 1; padding-left: 0; }
+    .table-textarea { min-width: 180px; min-height: 38px; resize: vertical; line-height: 1.35; }
+    .months-table .table-input { min-width: 72px; }
+    .progress-cell { min-width: 180px; }
+    .progress-track { height: 8px; border-radius: 999px; background: #eef2ff; overflow: hidden; margin: 8px 0 6px; }
+    .progress-fill { height: 100%; width: var(--progress, 0%); border-radius: inherit; background: #4f46e5; transition: width 0.2s; }
+    .progress-label { display: block; color: #6b7280; font-size: 12px; font-family: "Gotham", "Inter", Arial, sans-serif; }
+    .table-actions { padding: 14px 18px; border-top: 1px solid #eef0f4; background: #ffffff; }
+    .add-row-button { border: none; border-radius: 10px; background: #4f46e5; color: #ffffff; padding: 10px 16px; font-size: 13px; font-weight: 800; box-shadow: 0 10px 22px rgba(79,70,229,0.18); }
+    .edit-row-button { border: 1px solid #ddd6fe; border-radius: 9px; background: #f5f3ff; color: #4f46e5; padding: 8px 12px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .edit-row-button.saving { background: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .delete-row-button { border: 1px solid #fed7aa; border-radius: 9px; background: #fff7ed; color: #c2410c; padding: 8px 12px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .labor-summary-card { border-radius: 12px; background: #ffffff; border: 1px solid #e5e7eb; overflow: hidden; }
+    .labor-summary-card .data-card-header { padding: 18px 20px; }
+    .labor-stat-table, .factory-trend-table { width: 100%; border-collapse: collapse; }
+    .labor-stat-table th, .labor-stat-table td,
+    .factory-trend-table th, .factory-trend-table td { padding: 10px 12px; border-bottom: 1px solid #eef0f4; text-align: center; vertical-align: middle; white-space: nowrap; font-size: 13px; }
+    .labor-stat-table th, .factory-trend-table th { background: #f9fafb; color: #6b7280; font-weight: 800; }
+    .labor-stat-table td:first-child, .factory-trend-table td.factory-name { text-align: left; color: #111827; font-weight: 800; }
+    .labor-stat-table td input { width: 100%; min-width: 72px; border: 1px solid #d1d5db; border-radius: 10px; background: #f8fafc; color: #111827; padding: 8px 10px; font-size: 13px; text-align: center; }
+    .labor-stat-table td input.rate-good { color: #166534; border-color: #bbf7d0; background: #f0fdf4; }
+    .labor-stat-table td input.rate-bad { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
+    .labor-stat-table td input:focus { outline: 2px solid rgba(79,70,229,0.2); }
+    .labor-stat-table td span.green, .factory-trend-table td span.green { color: #166534; }
+    .labor-stat-table td span.red, .factory-trend-table td span.red { color: #b91c1c; }
+    .factory-trend-card .data-card-header { padding: 18px 20px; }
+    .factory-trend-table td .trend-label { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #6b7280; }
+    .factory-status-dot, .labor-status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 6px; }
+    .factory-status-dot.green, .labor-status-dot.green { background: #16a34a; }
+    .factory-status-dot.red, .labor-status-dot.red { background: #dc2626; }
+    .labor-status-dot.empty { background: #e5e7eb; }
+    .factory-trend-table td .trend-label { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #6b7280; }
+    .labor-summary { display: none; }
+    .labor-month-card { display: none; }
+    .labor-month-card.current { opacity: 1; border-color: #c7d2fe; background: #f8f9ff; box-shadow: 0 12px 30px rgba(79,70,229,0.10); transform: translateY(-2px); }
+    .labor-month-card h4 { margin: 0 0 10px; font-size: 15px; font-weight: 900; color: #111827; }
+    .labor-month-card p { margin: 0; color: #6b7280; font-size: 13px; }
+    .labor-cell-button { width: 100%; min-width: 82px; border: 1px solid #e5e7eb; border-radius: 10px; background: #ffffff; padding: 8px 10px; color: #6b7280; opacity: 0.48; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+    .labor-cell-button.current { opacity: 1; border-color: #c7d2fe; background: #f8f9ff; }
+    .labor-cell-button.achieved { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+    .labor-cell-button.missed { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+    .labor-cell-button strong { font-size: 14px; font-weight: 900; margin: 0; }
+    .progress-cell { padding: 8px 6px; min-width: 170px; }
+    .progress-bar-container { width: 100%; height: 18px; border-radius: 999px; background: #e5e7eb; overflow: hidden; margin-bottom: 6px; }
+    .progress-bar-fill { height: 100%; width: 0%; background: #16a34a; transition: width 0.25s ease; }
+    .progress-cell.missed .progress-bar-fill { background: #dc2626; }
+    .progress-cell .progress-label { display: inline-block; width: 100%; text-align: center; font-size: 12px; color: #374151; }
+    .labor-cell-button span { display: inline-block; margin: 0; font-size: 11px; }
+    .labor-editor { display: none; position: fixed; inset: 0; z-index: 60; background: rgba(15,23,42,0.42); padding: 32px; }
+    .labor-editor.active { display: grid; place-items: center; }
+    .labor-editor-card { width: min(520px, 100%); border-radius: 14px; background: #ffffff; overflow: hidden; box-shadow: 0 24px 70px rgba(15,23,42,0.22); }
+    .labor-editor-top { display: flex; justify-content: space-between; align-items: center; padding: 20px 22px; border-bottom: 1px solid #e5e7eb; }
+    .labor-editor-top h3 { margin: 0; font-size: 18px; font-weight: 900; }
+    .labor-editor-body { display: grid; gap: 14px; padding: 22px; }
+    .labor-editor-body label { display: grid; gap: 8px; color: #6b7280; font-size: 13px; }
+    .labor-editor-body input, .labor-editor-body select, .labor-editor-body textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 9px; padding: 10px 12px; }
+    .labor-editor-body textarea { min-height: 90px; resize: vertical; }
+    .labor-editor-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 0 22px 22px; }
+    @media (max-width: 980px) {
+      .input-metric-list { grid-template-columns: 1fr; }
+    }
+    [hidden] { display: none !important; }
+
+    .details-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.45); padding: 32px; z-index: 40; overflow-y: auto; }
+    .details-overlay.active { display: block; }
+    .details-card { max-width: 980px; margin: 0 auto; background: #ffffff; border-radius: 14px; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column; }
+    .details-top { display: flex; justify-content: space-between; align-items: center; padding: 28px 32px; background: linear-gradient(135deg, #f8f5ff 0%, #ffffff 100%); }
+    .details-top h3 { margin: 0; font-size: 24px; }
+    .details-top small { color: var(--muted); }
+    .details-actions { display: flex; gap: 12px; }
+    .save-button { border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; color: #374151; padding: 8px 16px; font-size: 14px; cursor: pointer; }
+    .save-button:hover { background: #f3f4f6; }
+    .details-close { border: none; background: none; font-size: 24px; color: var(--muted); cursor: pointer; }
+    .details-body { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 26px 32px 32px; background: #f9f9ff; overflow-y: auto; flex: 1; }
+    .intro-block { border-radius: 12px; padding: 20px; background: #ffffff; border: 1px solid #e5e7eb; }
+    .intro-block h4 { margin: 0 0 12px; font-size: 16px; color: var(--accent); }
+    .intro-block p { margin: 0 0 8px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .month-block { border-radius: 12px; padding: 20px; background: #ffffff; border: 1px solid #e5e7eb; }
+    .month-block h4 { margin: 0 0 12px; font-size: 16px; }
+    .status-selector { display: flex; gap: 16px; margin-bottom: 12px; }
+    .status-selector label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+    .status-selector input[type="radio"] { margin: 0; }
+    .note-input { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; resize: vertical; min-height: 60px; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <button class="sidebar-show-button" id="sidebarShowButton" title="显示导航栏">›</button>
+    <div class="page-grid">
+      <aside class="panel sidebar-panel">
+        <div class="panel-header">
+          <div class="sidebar-header-top">
+            <div class="sidebar-brand">
+              <h1>华东-中南片区</h1>
+              <h2>专案进度看板</h2>
+              <p class="brand-small">Project Dashboard</p>
+            </div>
+            <button class="nav-toggle-button" id="sidebarToggle" title="隐藏导航栏">‹</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="nav-block">
+            <div class="nav-group">
+              <div class="nav-item"><button class="nav-button active" type="button" data-title="专案概览" data-subtitle="Project overview" data-view="overview">专案概览 <span>Project overview</span><span class="dot"></span></button></div>
+              <div class="nav-item"><button class="nav-button" type="button" data-title="全员蓝领劳动生产率" data-subtitle="Blue-collar productivity" data-view="labor">全员蓝领劳动生产率 <span>Blue-collar productivity</span><span class="dot"></span></button></div>
+              <div class="nav-item"><button class="nav-button" type="button" data-title="降本省人" data-subtitle="Cost and headcount saving" data-view="cost">降本省人 <span>Cost and headcount saving</span><span class="dot"></span></button></div>
+              <div class="nav-item"><button class="nav-button" type="button" data-title="业务拓展" data-subtitle="Business development" data-view="business">业务拓展 <span>Business development</span><span class="dot"></span></button></div>
+              <div class="nav-item"><button class="nav-button" type="button" data-title="技术突破" data-subtitle="Technical breakthrough" data-view="tech">技术突破 <span>Technical breakthrough</span><span class="dot"></span></button></div>
+            </div>
+          </div>
+          <div class="nav-period">
+            <strong id="navPeriod">2026年5月</strong>
+            <span>Current period</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel main-panel">
+        <div class="panel-header">
+          <div>
+            <h2 id="boardTitle">专案概览</h2>
+            <small id="boardSubtitle">Project overview</small>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="overviewContent">
+            <div class="metric-list">
+              <div class="metric-block metric-total">
+                <span>专案数 <small>Amount of Projects</small></span>
+                <strong id="activeProjects">1</strong>
+              </div>
+              <div class="metric-block metric-complete">
+                <span>本月完成数 <small>Completed This Month</small></span>
+                <strong id="completedItems">8</strong>
+              </div>
+              <div class="metric-block metric-pending">
+                <span>本月未完成数 <small>Pending This Month</small></span>
+                <strong id="pendingCount">4</strong>
+              </div>
+            </div>
+            <div class="project-list" id="projectList"></div>
+          </div>
+          <div class="subpage" id="laborContent" hidden>
+            <div class="labor-summary-card data-card">
+              <div class="data-card-header">
+                <h3>片区汇总</h3>
+                <small>片区全员蓝领劳动生产率月度数据</small>
+              </div>
+              <div class="data-table-wrap">
+                <table class="data-table labor-stat-table">
+                  <thead>
+                    <tr>
+                      <th>指标</th>
+                      <th>1月</th>
+                      <th>2月</th>
+                      <th>3月</th>
+                      <th>4月</th>
+                      <th>5月</th>
+                      <th>6月</th>
+                      <th>7月</th>
+                      <th>8月</th>
+                      <th>9月</th>
+                      <th>10月</th>
+                      <th>11月</th>
+                      <th>12月</th>
+                    </tr>
+                  </thead>
+                  <tbody id="laborSummaryHead"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="factory-trend-card data-card">
+              <div class="data-card-header">
+                <h3>各工厂趋势</h3>
+                <small>全员蓝领劳动生产率月度数据</small>
+              </div>
+              <div class="data-table-wrap">
+                <table class="data-table factory-trend-table">
+                  <thead>
+                    <tr>
+                      <th>序号</th>
+                      <th>工厂</th>
+                      <th>1月</th>
+                      <th>2月</th>
+                      <th>3月</th>
+                      <th>4月</th>
+                      <th>5月</th>
+                      <th>6月</th>
+                      <th>7月</th>
+                      <th>8月</th>
+                      <th>9月</th>
+                      <th>10月</th>
+                      <th>11月</th>
+                      <th>12月</th>
+                    </tr>
+                  </thead>
+                  <tbody id="laborTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="subpage" id="costContent" hidden>
+            <div class="input-metric-list">
+              <div class="input-metric blue">
+                <label for="costLaborRate">当月人力成本率 <small>Monthly labor cost rate</small></label>
+                <div class="metric-input-row"><input class="metric-input persist-input" id="costLaborRate" data-store-key="costLaborRate" type="number" step="0.01" placeholder="13.99"><span class="metric-unit">%</span></div>
+              </div>
+              <div class="input-metric green">
+                <label for="costReductionAmount">当月降本金额 <small>Monthly cost reduction</small></label>
+                <div class="metric-input-row"><input class="metric-input persist-input" id="costReductionAmount" data-store-key="costReductionAmount" type="number" step="0.1" placeholder="223.3"><span class="metric-unit">万</span></div>
+              </div>
+              <div class="input-metric orange">
+                <label for="costHeadcount">当月减员人数 <small>Monthly headcount saving</small></label>
+                <div class="metric-input-row"><input class="metric-input persist-input" id="costHeadcount" data-store-key="costHeadcount" type="number" step="1" placeholder="28"><span class="metric-unit">人</span></div>
+              </div>
+            </div>
+            <div class="data-card">
+              <div class="data-card-header">
+                <h3>各工厂省人汇总</h3>
+                <small>Monthly headcount saving by factory</small>
+              </div>
+              <div class="data-table-wrap">
+                <table class="data-table months-table">
+                  <thead id="costTableHead"></thead>
+                  <tbody id="costTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="subpage" id="businessContent" hidden>
+            <div class="input-metric-list">
+              <div class="input-metric blue">
+                <label for="businessTarget">新业务承接目标 <small>New business revenue target</small></label>
+                <div class="metric-input-row"><input class="metric-input persist-input" id="businessTarget" data-store-key="businessTarget" type="number" step="0.1" placeholder="万"></div>
+              </div>
+              <div class="input-metric green">
+                <label for="businessModelCount">车型产品个数 <small>Models/products count</small></label>
+                <div class="metric-input-row"><input class="metric-input persist-input" id="businessModelCount" data-store-key="businessModelCount" type="number" step="1" placeholder="个"></div>
+              </div>
+              <div class="input-metric orange">
+                <label>已承接营业额 <small>Cumulative contracted revenue</small></label>
+                <div class="metric-input-row"><strong class="metric-input" id="businessCompletedRevenue">0</strong></div>
+              </div>
+            </div>
+            <div class="data-card">
+              <div class="data-card-header">
+                <h3>各工厂累积承接营业额</h3>
+                <small>点击方块填写本月累积承接营业额</small>
+              </div>
+              <div class="data-table-wrap">
+                <table class="data-table business-table">
+                  <thead>
+                    <tr>
+                      <th>序号</th>
+                      <th>工厂</th>
+                      <th>目标</th>
+                      <th>1月</th>
+                      <th>2月</th>
+                      <th>3月</th>
+                      <th>4月</th>
+                      <th>5月</th>
+                      <th>6月</th>
+                      <th>7月</th>
+                      <th>8月</th>
+                      <th>9月</th>
+                      <th>10月</th>
+                      <th>11月</th>
+                      <th>12月</th>
+                      <th>达成率</th>
+                    </tr>
+                  </thead>
+                  <tbody id="businessTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="subpage" id="techContent" hidden>
+            <div class="input-metric-list">
+              <div class="input-metric blue">
+                <label for="techTarget">年度降本目标 <small>Annual saving target</small></label>
+                <div class="metric-input-row"><input class="metric-input persist-input" id="techTarget" data-store-key="techTarget" type="number" step="0.1" placeholder="6584"><span class="metric-unit">万</span></div>
+              </div>
+              <div class="input-metric green">
+                <label for="techCurrent">目前累计降本 <small>Current accumulated saving</small></label>
+                <div class="metric-input-row"><input class="metric-input persist-input" id="techCurrent" data-store-key="techCurrent" type="number" step="0.1" placeholder="926"><span class="metric-unit">万</span></div>
+              </div>
+              <div class="input-metric orange">
+                <label>达成率 <small>Achievement rate</small></label>
+                <div class="metric-input-row"><strong class="metric-input" id="techRate">0%</strong></div>
+              </div>
+            </div>
+            <div class="data-card">
+              <div class="data-card-header">
+                <h3>各工厂技术突破进度</h3>
+                <small>Technical breakthrough tracking</small>
+              </div>
+              <div class="data-table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>工厂</th>
+                      <th>突破项目</th>
+                      <th>进度输入</th>
+                      <th>识别进度</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="techTableBody"></tbody>
+                </table>
+              </div>
+              <div class="table-actions">
+                <button class="add-row-button" id="addTechRowButton" type="button">添加项</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="details-overlay" id="detailsOverlay">
+    <div class="details-card">
+      <div class="details-top">
+        <div>
+          <h3 id="overlayTitle">任务详情</h3>
+          <small id="overlaySubtitle">查看 1-12 月详细进度</small>
+        </div>
+        <div class="details-actions">
+          <button class="save-button" id="saveButton">保存</button>
+          <button class="details-close" id="overlayClose">×</button>
+        </div>
+      </div>
+      <div class="details-body" id="detailsBody"></div>
+    </div>
+  </div>
+
+  <div class="labor-editor" id="laborEditor">
+    <div class="labor-editor-card">
+      <div class="labor-editor-top">
+        <h3 id="laborEditorTitle">填写数据</h3>
+        <button class="details-close" id="laborEditorClose" type="button">×</button>
+      </div>
+      <div class="labor-editor-body">
+        <label>蓝领劳动生产率实际
+          <input id="laborValueInput" type="number" step="0.01" placeholder="例如 301.5">
+        </label>
+        <label>是否达成
+          <select id="laborStatusInput">
+            <option value="">未选择</option>
+            <option value="achieved">达成</option>
+            <option value="missed">未达成</option>
+          </select>
+        </label>
+        <label>原因分析
+          <textarea id="laborReasonInput" placeholder="填写未达成原因、改善措施或补充说明"></textarea>
+        </label>
+      </div>
+      <div class="labor-editor-actions">
+        <button class="save-button" id="laborEditorCancel" type="button">取消</button>
+        <button class="add-row-button" id="laborEditorSave" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="labor-editor" id="techEditor">
+    <div class="labor-editor-card">
+      <div class="labor-editor-top">
+        <h3 id="techEditorTitle">编辑技术突破</h3>
+        <button class="details-close" id="techEditorClose" type="button">×</button>
+      </div>
+      <div class="labor-editor-body">
+        <label>工厂
+          <input id="techFactoryInput" type="text" placeholder="输入工厂">
+        </label>
+        <label>突破项目
+          <input id="techProjectInput" type="text" placeholder="输入突破项目">
+        </label>
+        <label>进度输入
+          <textarea id="techProgressInput" placeholder="例如：方案设计 / 试产验证 / 已完成 / 80%"></textarea>
+        </label>
+      </div>
+      <div class="labor-editor-actions">
+        <button class="delete-row-button" id="techEditorDelete" type="button">删除本条</button>
+        <button class="save-button" id="techEditorCancel" type="button">取消</button>
+        <button class="add-row-button" id="techEditorSave" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="labor-editor" id="businessEditor">
+    <div class="labor-editor-card">
+      <div class="labor-editor-top">
+        <h3 id="businessEditorTitle">填写业务承接</h3>
+        <button class="details-close" id="businessEditorClose" type="button">×</button>
+      </div>
+      <div class="labor-editor-body">
+        <label>本月累积承接营业额
+          <input id="businessRevenueInput" type="number" step="0.1" placeholder="例如 520.5">
+        </label>
+        <label>承接车型及对应营业额
+          <textarea id="businessNoteInput" placeholder="例如：车型A 120万，车型B 80万"></textarea>
+        </label>
+      </div>
+      <div class="labor-editor-actions">
+        <button class="save-button" id="businessEditorCancel" type="button">取消</button>
+        <button class="add-row-button" id="businessEditorSave" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const projects = [
+      { name: '安全', owner: '夏旭勇', dots: ['green','green','green','green','green','green','green','green','red','red','red','red'], details: ['1.设备本质安全', '2.非常规作业管控', '3.大线体防火防爆专项', '4.新员工培训管理', '5.变更管理', '6.环境改善专项'], notes: new Array(12).fill('') },
+      { name: '业务拓展', owner: '工厂总', dots: ['green','green','green','green','green','red','red','red','red','red','red','red'], details: ['1.传统客户新产品开拓：巩固门框/饰条份额；由装饰件向电池壳、防撞梁结构件转型；深耕Tier2客户与日系切替。', '2.新势力·新产品：突破BYD、小米、小鹏等密封系统；布局电池盒、滑移门智能件；强化BU资源协同。', '3.东南亚·海外：随丰田、吉利、比亚迪等主机厂布局泰/印市场；强化国内+海外据点协同。'], notes: new Array(12).fill('') },
+      { name: 'AI+', owner: '鲁珍玫', dots: ['green','green','green','green','green','green','red','red','red','red','red','red'], details: ['1.管理层和蓝领的AI实践-透明工厂平台AI模型投入使用（会议报告、数据分析、质检、安全监测）', '2.数字化员工认证-应用场景10个，白领宜搭认证60%以上、数字化能力测评50%人员达到L3及以上', '3.全球SAP系统上线，北美+日本+韩国+哈敏吉', '4.建设两家智能制造标杆工厂，橡胶_武汉东海，铝挤出_淮安和通'], notes: new Array(12).fill('') },
+      { name: '文化', owner: '张娟/赖惠艺', dots: ['green','green','green','green','green','green','green','red','red','red','red','red'], details: ['以核心员工为锚点，开展1V1深度访谈，通过可复制标杆与高频激励让文化持续凝聚团队，全员敬业度提升到4.2'], notes: new Array(12).fill('') },
+      { name: '降本', owner: '童丽雯', dots: ['green','green','green','green','green','green','green','green','green','red','red','red'], details: ['1.产品毛利提升专项，包括同类产品成本对标，每月收入成本明细表分析；低毛利产品标准毛利提升5%', '2.现场成本检核，建立履历表；每周现场检核不低于3次，记录上传宜搭并追踪异常', '3.激励全员参与降本活动，营造良好的降本氛围；26年攻击浪费目标27531万'], notes: new Array(12).fill('') },
+      { name: '提效', owner: '黄莉', dots: ['green','green','green','green','red','red','red','red','red','red','red','red'], details: ['1.蓝领劳动生产率提升至312', '2.各个序列配置人数对标，目标：人力成本降低8%', '3.自动化项目推进，目标：助力效率提升8%', '4.检查类岗位优化项目横展推进，提效5%'], notes: new Array(12).fill('') },
+      { name: '密封条竞争力提升', owner: '清远东海-成晓敏', dots: ['green','green','green','green','green','red','red','red','red','red','red','red'], details: ['1.材料降本10%：滚剪芯金自制，降低芯金外购率；发泡材战略合作外包；材料稳定性提升，报废占比20%降低至10%。', '2.生产效率提升30%：硫化注塑飞边改善，挤出速度提升（门洞18m/分门条20m/分，水切14m/分）', '3.制程不良率在2025年3.97%的基础上下降到3.77%，环比下降5%', '4.设计与专利超5项，平齐门、无框门设计与业务突破承接'], notes: new Array(12).fill('') },
+      { name: '技术突破', owner: '杜奇/杨林/郑金才', dots: ['green','green','green','green','green','green','green','red','red','red','red','red'], details: ['1.饰条：机器人冲切提速，1200PCS/班提到1500PCs', '2.门框：门框外观面自动打磨突破', '3.橡胶：橡胶硫化注塑飞边突破/橡胶硫化注塑冷流道应用', '4.三角窗：玻璃自动涂胶烘烤'], notes: new Array(12).fill('') },
+      { name: '品质过程管理', owner: '熊强辉', dots: ['green','green','green','green','green','green','green','green','red','red','red','red'], details: ['1.客户声音专项：客户业绩及时预警，过程品质改善提升，减少客户抱怨和流出PPM', '2.报废降低专项：强化报废管理机制，重点推进橡胶产品报废损失和返工返修降低，挑战报废率同比降低10%', '3.腰斩行动：外部挑选一把手工程，快速响应断点，索赔和异常运费逐项反省', '4.变更管理：确保VAVE和工厂移转搬迁变更流出合规性和品质稳定性', '5.出口件品质专项：强化出口件过程和流出管控，重点华中、泰国工厂'], notes: new Array(12).fill('') }
+    ];
+
+    const currentMonth = new Date().getMonth();
+    const monthLabels = Array.from({ length: 12 }, (_, index) => `${index + 1}月`);
+
+    const boardTitle = document.getElementById('boardTitle');
+    const boardSubtitle = document.getElementById('boardSubtitle');
+    const navPeriod = document.getElementById('navPeriod');
+    const overviewContent = document.getElementById('overviewContent');
+    const laborContent = document.getElementById('laborContent');
+    const costContent = document.getElementById('costContent');
+    const businessContent = document.getElementById('businessContent');
+    const techContent = document.getElementById('techContent');
+    const navButtons = document.querySelectorAll('.nav-button');
+    const subpages = {
+      overview: overviewContent,
+      labor: laborContent,
+      cost: costContent,
+      business: businessContent,
+      tech: techContent
+    };
+
+    const activeProjects = document.getElementById('activeProjects');
+    const completedItems = document.getElementById('completedItems');
+    const pendingCount = document.getElementById('pendingCount');
+    const projectList = document.getElementById('projectList');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarShowButton = document.getElementById('sidebarShowButton');
+    const detailsOverlay = document.getElementById('detailsOverlay');
+    const laborEditor = document.getElementById('laborEditor');
+    const laborEditorTitle = document.getElementById('laborEditorTitle');
+    const laborValueInput = document.getElementById('laborValueInput');
+    const laborStatusInput = document.getElementById('laborStatusInput');
+    const laborReasonInput = document.getElementById('laborReasonInput');
+    const laborEditorClose = document.getElementById('laborEditorClose');
+    const laborEditorCancel = document.getElementById('laborEditorCancel');
+    const laborEditorSave = document.getElementById('laborEditorSave');
+    const techEditor = document.getElementById('techEditor');
+    const techEditorTitle = document.getElementById('techEditorTitle');
+    const techFactoryInput = document.getElementById('techFactoryInput');
+    const techProjectInput = document.getElementById('techProjectInput');
+    const techProgressInput = document.getElementById('techProgressInput');
+    const techEditorClose = document.getElementById('techEditorClose');
+    const techEditorCancel = document.getElementById('techEditorCancel');
+    const techEditorSave = document.getElementById('techEditorSave');
+    const techEditorDelete = document.getElementById('techEditorDelete');
+    techEditorDelete.addEventListener('click', deleteTechRow);
+    const businessTableBody = document.getElementById('businessTableBody');
+    const businessCompletedRevenue = document.getElementById('businessCompletedRevenue');
+    const businessEditor = document.getElementById('businessEditor');
+    const businessEditorTitle = document.getElementById('businessEditorTitle');
+    const businessRevenueInput = document.getElementById('businessRevenueInput');
+    const businessNoteInput = document.getElementById('businessNoteInput');
+    const businessEditorClose = document.getElementById('businessEditorClose');
+    const businessEditorCancel = document.getElementById('businessEditorCancel');
+    const businessEditorSave = document.getElementById('businessEditorSave');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlaySubtitle = document.getElementById('overlaySubtitle');
+    const overlayClose = document.getElementById('overlayClose');
+    const detailsBody = document.getElementById('detailsBody');
+    const saveButton = document.getElementById('saveButton');
+    const costTableHead = document.getElementById('costTableHead');
+    const costTableBody = document.getElementById('costTableBody');
+    const techTableBody = document.getElementById('techTableBody');
+    const techTarget = document.getElementById('techTarget');
+    const techCurrent = document.getElementById('techCurrent');
+    const techRate = document.getElementById('techRate');
+    const addTechRowButton = document.getElementById('addTechRowButton');
+    const laborSummaryHead = document.getElementById('laborSummaryHead');
+    const laborTableBody = document.getElementById('laborTableBody');
+    let activeLaborCell = null;
+    let activeTechRowId = null;
+
+    const factories = [
+      '广州敏惠',
+      '广州敏实',
+      '广州东海',
+      '清远敏瑞',
+      '清远东海',
+      '重庆敏特',
+      '湖北敏实',
+      '安徽敏胜',
+      '沌口园区',
+      '武汉东海',
+      '宁波信泰',
+      '泰国工厂'
+    ];
+
+    const techDefaults = [
+      '三角窗自动涂胶',
+      '饰条机器人冲切提速',
+      '冷流道系统批量导入',
+      '门框导轨自动电焊',
+      '橡胶硫化注塑飞边优化',
+      '设备节拍提升',
+      '自动检具应用',
+      '模具寿命改善',
+      '线体防呆改造',
+      '胶料损耗改善',
+      '视觉检测导入',
+      '海外工厂工艺横展'
+    ];
+
+    const appFormData = JSON.parse(localStorage.getItem('dashboardFormData') || '{}');
+    const defaultTechRows = factories.map((factory, index) => ({
+      id: `default-${index}`,
+      factory,
+      project: techDefaults[index] || '',
+      progress: ''
+    }));
+    let techRows = Array.isArray(appFormData.techRows) && appFormData.techRows.length
+      ? appFormData.techRows
+      : defaultTechRows;
+    const editingTechRows = new Set();
+
+    // Load saved data
+    const savedData = JSON.parse(localStorage.getItem('projectData') || '{}');
+    projects.forEach((project, index) => {
+      if (savedData[index]) {
+        project.dots = savedData[index].dots || project.dots;
+        project.notes = savedData[index].notes || project.notes;
+      }
+    });
+
+    function renderProjects() {
+      projectList.innerHTML = '';
+      projects.forEach((project, index) => {
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        const indicatorHtml = project.dots.map((status, monthIndex) => {
+          const dotClass = status === 'green' ? 'green' : status === 'red' ? 'red' : 'empty';
+          const currentClass = monthIndex === currentMonth ? ' current' : '';
+          return `<span class="month-indicator${currentClass}"><span class="indicator-dot ${dotClass}"></span><span class="month-label">${monthLabels[monthIndex]}</span></span>`;
+        }).join('');
+        card.innerHTML = `
+          <div>
+            <p class="project-title">${project.name}</p>
+            <p class="project-owner">责任人：${project.owner}</p>
+            <div class="indicator-row">${indicatorHtml}</div>
+          </div>
+          <button class="project-action" aria-label="查看详情">›</button>
+        `;
+        card.querySelector('.project-action').addEventListener('click', () => openDetail(index));
+        projectList.appendChild(card);
+      });
+    }
+
+    function renderMetrics() {
+      activeProjects.textContent = 9;
+      let completed = 0;
+      let pending = 0;
+      projects.forEach(project => {
+        const status = project.dots[currentMonth];
+        if (status === 'green') completed++;
+        else if (status === 'red') pending++;
+        // Empty status is not counted
+      });
+      completedItems.textContent = completed;
+      pendingCount.textContent = pending;
+    }
+
+    function saveFormValue(key, value) {
+      appFormData[key] = value;
+      localStorage.setItem('dashboardFormData', JSON.stringify(appFormData));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function restorePersistentInputs() {
+      document.querySelectorAll('.persist-input').forEach(input => {
+        if (Object.prototype.hasOwnProperty.call(appFormData, input.dataset.storeKey)) {
+          input.value = appFormData[input.dataset.storeKey];
+        }
+        input.addEventListener('input', () => {
+          saveFormValue(input.dataset.storeKey, input.value);
+          updateTechRate();
+        });
+      });
+    }
+
+    function renderCostTable() {
+      costTableHead.innerHTML = `
+        <tr>
+          <th>工厂</th>
+          <th>白领总人数</th>
+          ${monthLabels.map(month => `<th>${month}减员</th>`).join('')}
+        </tr>
+      `;
+      costTableBody.innerHTML = factories.map(factory => `
+        <tr>
+          <td class="factory-name">${factory}</td>
+          <td><input class="table-input factory-input" data-store-key="cost-white-total-${factory}" type="number" step="1" value="${escapeHtml(appFormData[`cost-white-total-${factory}`] || '')}" placeholder="总人数"></td>
+          ${monthLabels.map((month, monthIndex) => {
+            const whiteKey = `cost-white-reduction-${factory}-${monthIndex}`;
+            const whiteValue = appFormData[whiteKey] || '';
+            return `<td><input class="table-input factory-input" data-store-key="${whiteKey}" type="number" step="1" value="${escapeHtml(whiteValue)}" placeholder="减员"></td>`;
+          }).join('')}
+        </tr>
+      `).join('');
+    }
+
+    function businessKey(factory, monthIndex, field) {
+      return `business-${field}-${factory}-${monthIndex}`;
+    }
+
+    function businessTargetKey(factory) {
+      return `business-target-${factory}`;
+    }
+
+    function getBusinessTarget(factory) {
+      return Number(appFormData[businessTargetKey(factory)] || 0);
+    }
+
+    function getBusinessData(factory, monthIndex) {
+      return {
+        value: appFormData[businessKey(factory, monthIndex, 'value')] || '',
+        note: appFormData[businessKey(factory, monthIndex, 'note')] || ''
+      };
+    }
+
+    function getBusinessCumulative(factory) {
+      return monthLabels.reduce((latest, _, monthIndex) => {
+        const value = Number(getBusinessData(factory, monthIndex).value);
+        return Number.isFinite(value) && value > latest ? value : latest;
+      }, 0);
+    }
+
+    function renderBusinessMetrics() {
+      const total = factories.reduce((sum, factory) => sum + getBusinessCumulative(factory), 0);
+      businessCompletedRevenue.textContent = total ? `${total.toFixed(1).replace(/\.0$/, '')}万` : '0万';
+    }
+
+    function bindBusinessTargetInputs() {
+      document.querySelectorAll('.business-target-input').forEach(input => {
+        input.addEventListener('input', () => {
+          saveFormValue(input.dataset.storeKey, input.value);
+          renderBusinessTable();
+        });
+      });
+    }
+
+    function renderBusinessTable() {
+      businessTableBody.innerHTML = factories.map((factory, factoryIndex) => {
+        const targetValue = appFormData[businessTargetKey(factory)] || '';
+        const targetNumber = getBusinessTarget(factory);
+        const cumulative = getBusinessCumulative(factory);
+        const progressRatio = targetNumber > 0 ? Math.min(999, (cumulative / targetNumber) * 100) : 0;
+        const progressPercent = targetNumber > 0 ? `${progressRatio.toFixed(1)}%` : '--';
+        const progressClass = targetNumber > 0 ? (cumulative / targetNumber >= 1 ? 'achieved' : 'missed') : '';
+        return `
+          <tr>
+            <td>${factoryIndex + 1}</td>
+            <td class="factory-name">${escapeHtml(factory)}</td>
+            <td><input class="table-input business-target-input" type="number" step="0.1" data-store-key="${businessTargetKey(factory)}" value="${escapeHtml(targetValue)}" placeholder="目标"></td>
+            ${monthLabels.map((month, monthIndex) => {
+              const data = getBusinessData(factory, monthIndex);
+              const value = data.value ? escapeHtml(data.value) : '--';
+              const dotClass = data.value ? 'green' : 'empty';
+              return `
+                <td>
+                  <button class="labor-cell-button business-cell-button${data.value ? ' achieved' : ''}" type="button" data-factory="${factory}" data-month-index="${monthIndex}">
+                    <strong>${value}</strong>
+                    <span class="labor-status-dot ${dotClass}"></span>
+                  </button>
+                </td>
+              `;
+            }).join('')}
+            <td class="progress-cell ${progressClass}">
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: ${targetNumber > 0 ? Math.min(100, progressRatio).toFixed(1) : 0}%"></div>
+              </div>
+              <span class="progress-label">${progressPercent}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      bindBusinessTargetInputs();
+      bindBusinessTableActions();
+    }
+
+    function bindBusinessTableActions() {
+      document.querySelectorAll('.business-cell-button').forEach(button => {
+        button.addEventListener('click', () => {
+          openBusinessEditor(button.dataset.factory, Number(button.dataset.monthIndex));
+        });
+      });
+    }
+
+    let activeBusinessCell = null;
+
+    function openBusinessEditor(factory, monthIndex) {
+      const data = getBusinessData(factory, monthIndex);
+      activeBusinessCell = { factory, monthIndex };
+      businessEditorTitle.textContent = `${factory} ${monthLabels[monthIndex]} 编辑`;
+      businessRevenueInput.value = data.value || '';
+      businessNoteInput.value = data.note || '';
+      businessEditor.classList.add('active');
+    }
+
+    function closeBusinessEditor() {
+      activeBusinessCell = null;
+      businessEditor.classList.remove('active');
+    }
+
+    businessEditorClose.addEventListener('click', closeBusinessEditor);
+    businessEditorCancel.addEventListener('click', closeBusinessEditor);
+    businessEditorSave.addEventListener('click', () => {
+      if (!activeBusinessCell) return;
+      const { factory, monthIndex } = activeBusinessCell;
+      saveFormValue(businessKey(factory, monthIndex, 'value'), businessRevenueInput.value);
+      saveFormValue(businessKey(factory, monthIndex, 'note'), businessNoteInput.value);
+      renderBusinessTable();
+      renderBusinessMetrics();
+      closeBusinessEditor();
+    });
+
+    function laborKey(factory, monthIndex, field) {
+      return `labor-${field}-${factory}-${monthIndex}`;
+    }
+
+    function laborRegionKey(rowIndex, monthIndex) {
+      return `labor-region-${rowIndex}-${monthIndex}`;
+    }
+
+    function getLaborData(factory, monthIndex) {
+      return {
+        value: appFormData[laborKey(factory, monthIndex, 'value')] || '',
+        status: appFormData[laborKey(factory, monthIndex, 'status')] || '',
+        reason: appFormData[laborKey(factory, monthIndex, 'reason')] || ''
+      };
+    }
+
+    const laborRegionSummary = [
+      { label: '蓝领劳动生产率目标', values: [301.1, 327.9, 311.7, 305.2, 312.5, 318.0, 322.1, 328.4, 331.0, 336.5, 340.2, 345.0] },
+      { label: '蓝领劳动生产率实际', values: [269.8, 348.8, 299.7, 305.2, 297.3, 315.0, 325.6, 330.9, 335.8, 338.4, 342.1, 347.5] },
+      { label: '达成率', values: ['90%', '106%', '96%', '100%', '95%', '99%', '101%', '101%', '101%', '101%', '101%', '101%'] },
+      { label: '同期对比', values: [281, 330, 297, 285, 290, 295, 302, 308, 312, 318, 324, 330] }
+    ];
+
+    function renderLaborSummary() {
+      laborSummaryHead.innerHTML = laborRegionSummary.map((row, rowIndex) => {
+        return `
+          <tr>
+            <td>${row.label}</td>
+            ${row.values.map((value, monthIndex) => {
+              const key = laborRegionKey(rowIndex, monthIndex);
+              const saved = appFormData[key];
+              const displayValue = saved !== undefined ? saved : value;
+              const isRateRow = row.label === '达成率' || rowIndex === 2;
+              const numericRate = isRateRow ? Number(String(displayValue).replace('%', '').trim()) : null;
+              const rateClass = isRateRow ? (numericRate >= 100 ? 'rate-good' : 'rate-bad') : '';
+              return `<td><input class="labor-summary-input ${rateClass}" type="text" data-row="${rowIndex}" data-month="${monthIndex}" value="${escapeHtml(displayValue)}"></td>`;
+            }).join('')}
+          </tr>
+        `;
+      }).join('');
+      bindLaborSummaryInputs();
+    }
+
+    function bindLaborSummaryInputs() {
+      document.querySelectorAll('.labor-summary-input').forEach(input => {
+        input.addEventListener('input', () => {
+          const rowIndex = Number(input.dataset.row);
+          const monthIndex = Number(input.dataset.month);
+          saveFormValue(laborRegionKey(rowIndex, monthIndex), input.value);
+        });
+      });
+    }
+
+    function bindLaborTableActions() {
+      document.querySelectorAll('.labor-cell-button').forEach(button => {
+        button.addEventListener('click', () => {
+          openLaborEditor(button.dataset.factory, Number(button.dataset.monthIndex));
+        });
+      });
+    }
+
+    function openLaborEditor(factory, monthIndex) {
+      const data = getLaborData(factory, monthIndex);
+      activeLaborCell = { factory, monthIndex };
+      laborEditorTitle.textContent = `${factory} ${monthLabels[monthIndex]} 编辑`;
+      laborValueInput.value = data.value || '';
+      laborStatusInput.value = data.status || '';
+      laborReasonInput.value = data.reason || '';
+      laborEditor.classList.add('active');
+    }
+
+    function closeLaborEditor() {
+      activeLaborCell = null;
+      laborEditor.classList.remove('active');
+    }
+
+    laborEditorClose.addEventListener('click', closeLaborEditor);
+    laborEditorCancel.addEventListener('click', closeLaborEditor);
+    laborEditorSave.addEventListener('click', () => {
+      if (!activeLaborCell) return;
+      const { factory, monthIndex } = activeLaborCell;
+      saveFormValue(laborKey(factory, monthIndex, 'value'), laborValueInput.value);
+      saveFormValue(laborKey(factory, monthIndex, 'status'), laborStatusInput.value);
+      saveFormValue(laborKey(factory, monthIndex, 'reason'), laborReasonInput.value);
+      renderLaborTable();
+      closeLaborEditor();
+    });
+
+    function renderLaborTable() {
+      laborTableBody.innerHTML = factories.map((factory, factoryIndex) => `
+        <tr>
+          <td>${factoryIndex + 1}</td>
+          <td class="factory-name">${escapeHtml(factory)}</td>
+          ${monthLabels.map((month, monthIndex) => {
+            const data = getLaborData(factory, monthIndex);
+            const statusClass = data.status === 'achieved' ? ' achieved' : data.status === 'missed' ? ' missed' : '';
+            const dotClass = data.status === 'achieved' ? 'green' : data.status === 'missed' ? 'red' : 'empty';
+            const displayValue = data.value || '--';
+            return `
+              <td>
+                <button class="labor-cell-button${statusClass}" type="button" data-factory="${factory}" data-month-index="${monthIndex}">
+                  <strong>${escapeHtml(displayValue)}</strong>
+                  <span class="labor-status-dot ${dotClass}"></span>
+                </button>
+              </td>
+            `;
+          }).join('')}
+        </tr>
+      `).join('');
+      bindLaborTableActions();
+    }
+
+    function detectProgress(text) {
+      const value = (text || '').trim();
+      if (!value) return 0;
+      const explicitPercent = value.match(/(\d{1,3})\s*%/);
+      if (explicitPercent) return Math.min(100, Number(explicitPercent[1]));
+      if (/完成|达成|量产|已上线|已导入/.test(value)) return 100;
+      if (/持续|推进|批量|试运行|验证通过/.test(value)) return 75;
+      if (/试产|验证|调试|导入中/.test(value)) return 60;
+      if (/方案|设计|评审|立项/.test(value)) return 35;
+      if (/制作|采购|准备/.test(value)) return 20;
+      if (/延期|暂停|未开始|风险/.test(value)) return 10;
+      return 50;
+    }
+
+    function getSortedTechRows() {
+      return [...techRows].sort((a, b) => {
+        const aPercent = detectProgress(a.progress);
+        const bPercent = detectProgress(b.progress);
+        return aPercent - bPercent;
+      });
+    }
+
+    function renderTechTable() {
+      const sortedRows = getSortedTechRows();
+      techTableBody.innerHTML = sortedRows.map(row => {
+        const percent = detectProgress(row.progress);
+        return `
+          <tr data-tech-id="${row.id}">
+            <td class="factory-name">${escapeHtml(row.factory)}</td>
+            <td>${escapeHtml(row.project)}</td>
+            <td>${escapeHtml(row.progress)}</td>
+            <td class="progress-cell">
+              <div class="progress-track"><div class="progress-fill" style="--progress: ${percent}%"></div></div>
+              <span class="progress-label">${percent}%</span>
+            </td>
+            <td><button class="edit-row-button" type="button" data-tech-id="${row.id}">编辑</button></td>
+          </tr>
+        `;
+      }).join('');
+      bindTechTableActions();
+    }
+
+    function saveTechRows() {
+      appFormData.techRows = techRows;
+      localStorage.setItem('dashboardFormData', JSON.stringify(appFormData));
+    }
+
+    function bindFactoryInputs() {
+      document.querySelectorAll('.factory-input').forEach(input => {
+        input.addEventListener('input', () => {
+          saveFormValue(input.dataset.storeKey, input.value);
+        });
+      });
+    }
+
+    function openTechEditor(rowId) {
+      const row = techRows.find(item => item.id === rowId);
+      if (!row) return;
+      activeTechRowId = rowId;
+      techEditorTitle.textContent = '编辑技术突破';
+      techFactoryInput.value = row.factory;
+      techProjectInput.value = row.project;
+      techProgressInput.value = row.progress;
+      techEditor.classList.add('active');
+    }
+
+    function closeTechEditor() {
+      activeTechRowId = null;
+      techEditor.classList.remove('active');
+    }
+
+    function bindTechTableActions() {
+      document.querySelectorAll('.edit-row-button').forEach(button => {
+        button.addEventListener('click', () => {
+          openTechEditor(button.dataset.techId);
+        });
+      });
+    }
+
+    techEditorClose.addEventListener('click', closeTechEditor);
+    techEditorCancel.addEventListener('click', closeTechEditor);
+    techEditorSave.addEventListener('click', () => {
+      if (!activeTechRowId) return;
+      const row = techRows.find(item => item.id === activeTechRowId);
+      if (!row) return;
+      row.factory = techFactoryInput.value;
+      row.project = techProjectInput.value;
+      row.progress = techProgressInput.value;
+      saveTechRows();
+      renderTechTable();
+      closeTechEditor();
+    });
+
+    function updateTechRate() {
+      const target = Number(techTarget.value || 0);
+      const current = Number(techCurrent.value || 0);
+      const rate = target > 0 ? Math.min(999, (current / target) * 100) : 0;
+      techRate.textContent = `${rate.toFixed(1)}%`;
+    }
+
+    function openDetail(index) {
+      const project = projects[index];
+      overlayTitle.textContent = `${project.name}`;
+      overlaySubtitle.textContent = `推进人：${project.owner}`;
+      detailsBody.innerHTML = '';
+
+      // Compact project details
+      const introBlock = document.createElement('div');
+      introBlock.className = 'intro-block';
+      introBlock.innerHTML = `<h4>重点事项</h4>`;
+      project.details.forEach(detail => {
+        const p = document.createElement('p');
+        p.textContent = detail;
+        introBlock.appendChild(p);
+      });
+      detailsBody.appendChild(introBlock);
+
+      // Monthly status and notes
+      for (let i = 0; i < 12; i++) {
+        const monthBlock = document.createElement('div');
+        monthBlock.className = 'month-block';
+        monthBlock.innerHTML = `
+          <h4>${i + 1}月</h4>
+          <div class="status-selector">
+            <label><input type="radio" name="status-${i}" value="green" ${project.dots[i] === 'green' ? 'checked' : ''}> 完成</label>
+            <label><input type="radio" name="status-${i}" value="red" ${project.dots[i] === 'red' ? 'checked' : ''}> 未完成</label>
+          </div>
+          <textarea placeholder="进度备注" class="note-input">${project.notes ? project.notes[i] || '' : ''}</textarea>
+        `;
+        
+        // Add click handler to allow unchecking radio buttons
+        const radioButtons = monthBlock.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+          radio.addEventListener('click', function() {
+            if (this.checked && this.dataset.wasChecked === 'true') {
+              this.checked = false;
+              this.dataset.wasChecked = 'false';
+            } else {
+              this.dataset.wasChecked = this.checked ? 'true' : 'false';
+              // Uncheck other radios in the same group
+              radioButtons.forEach(otherRadio => {
+                if (otherRadio !== this) {
+                  otherRadio.dataset.wasChecked = 'false';
+                }
+              });
+            }
+          });
+        });
+        
+        detailsBody.appendChild(monthBlock);
+      }
+
+      detailsOverlay.classList.add('active');
+    }
+
+
+    navButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        navButtons.forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+        boardTitle.textContent = button.dataset.title;
+        boardSubtitle.textContent = button.dataset.subtitle;
+        Object.entries(subpages).forEach(([view, element]) => {
+          element.hidden = view !== button.dataset.view;
+        });
+      });
+    });
+
+    addTechRowButton.addEventListener('click', () => {
+      techRows.push({
+        id: `custom-${Date.now()}`,
+        factory: '',
+        project: '',
+        progress: ''
+      });
+      saveTechRows();
+      renderTechTable();
+      bindFactoryInputs();
+    });
+
+    function deleteTechRow() {
+      if (!activeTechRowId) return;
+      techRows = techRows.filter(item => item.id !== activeTechRowId);
+      saveTechRows();
+      renderTechTable();
+      closeTechEditor();
+    }
+
+    sidebarToggle.addEventListener('click', () => {
+      document.body.classList.toggle('collapsed');
+      sidebarToggle.textContent = document.body.classList.contains('collapsed') ? '›' : '‹';
+    });
+
+    sidebarShowButton.addEventListener('click', () => {
+      document.body.classList.remove('collapsed');
+      sidebarToggle.textContent = '‹';
+    });
+
+    overlayClose.addEventListener('click', () => {
+      detailsOverlay.classList.remove('active');
+    });
+
+    saveButton.addEventListener('click', () => {
+      const currentProjectIndex = Array.from(document.querySelectorAll('.project-card')).findIndex(card => {
+        return card.querySelector('.project-title').textContent === overlayTitle.textContent;
+      });
+      
+      if (currentProjectIndex !== -1) {
+        const project = projects[currentProjectIndex];
+        
+        // Save status
+        for (let i = 0; i < 12; i++) {
+          const statusInput = document.querySelector(`input[name="status-${i}"]:checked`);
+          if (statusInput) {
+            project.dots[i] = statusInput.value;
+          } else {
+            project.dots[i] = ''; // No status selected
+          }
+        }
+        
+        // Save notes
+        const noteInputs = document.querySelectorAll('.note-input');
+        noteInputs.forEach((input, index) => {
+          project.notes[index] = input.value;
+        });
+        
+        // Save to localStorage
+        const dataToSave = projects.map(p => ({
+          dots: p.dots,
+          notes: p.notes
+        }));
+        localStorage.setItem('projectData', JSON.stringify(dataToSave));
+        
+        // Update UI
+        renderMetrics();
+        renderProjects();
+        
+        // Close modal
+        detailsOverlay.classList.remove('active');
+      }
+    });
+
+    renderCostTable();
+    renderBusinessMetrics();
+    renderBusinessTable();
+    renderLaborSummary();
+    renderLaborTable();
+    renderTechTable();
+    restorePersistentInputs();
+    bindFactoryInputs();
+    updateTechRate();
+    renderMetrics();
+    renderProjects();
+  </script>
+</body>
+</html>
